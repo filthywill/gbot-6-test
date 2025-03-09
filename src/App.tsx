@@ -23,7 +23,7 @@ function App() {
     containerScale,
   } = useGraffitiGenerator();
 
-  // Initialize customization options with the updated approach
+  // Initialize customization options
   const [customizationOptions, setCustomizationOptions] = useState<CustomizationOptions>({
     // Background options
     backgroundEnabled: false,
@@ -67,12 +67,46 @@ function App() {
     shieldWidth: 15, // Default width
   });
 
+  // History state for undo/redo functionality
+  const [customizationHistory, setCustomizationHistory] = useState<CustomizationOptions[]>([]);
+  const [currentHistoryIndex, setCurrentHistoryIndex] = useState(-1);
+
+  // Add current options to history when they change
+  const handleCustomizationChange = (newOptions: CustomizationOptions) => {
+    // Create a new history entry
+    const newHistory = customizationHistory.slice(0, currentHistoryIndex + 1);
+    newHistory.push(newOptions);
+    
+    // Update history and current index
+    setCustomizationHistory(newHistory);
+    setCurrentHistoryIndex(newHistory.length - 1);
+    
+    // Update current options
+    setCustomizationOptions(newOptions);
+  };
+
+  // Handle undo/redo
+  const handleUndoRedo = (newIndex: number) => {
+    if (newIndex >= 0 && newIndex < customizationHistory.length) {
+      setCurrentHistoryIndex(newIndex);
+      setCustomizationOptions(customizationHistory[newIndex]);
+    }
+  };
+
   // Auto-generate when style changes or when component mounts
   useEffect(() => {
     if (inputText.trim()) {
       generateGraffiti(inputText);
     }
   }, [selectedStyle]); // Only re-run when selected style changes
+
+  // Initialize history when customizationOptions is first set up
+  useEffect(() => {
+    if (customizationHistory.length === 0) {
+      setCustomizationHistory([customizationOptions]);
+      setCurrentHistoryIndex(0);
+    }
+  }, []);
 
   // Handle style change with custom handler to ensure we update style before regenerating
   const handleStyleChange = (styleId: string) => {
@@ -127,13 +161,16 @@ function App() {
                 contentHeight={contentHeight}
                 containerScale={containerScale}
                 customizationOptions={customizationOptions}
+                customizationHistory={customizationHistory}
+                currentHistoryIndex={currentHistoryIndex}
+                onUndoRedo={handleUndoRedo}
               />
             </div>
             
             {/* Customization toolbar attached directly to display */}
             <CustomizationToolbar 
               options={customizationOptions}
-              onChange={setCustomizationOptions}
+              onChange={handleCustomizationChange}
             />
           </div>
         </div>
