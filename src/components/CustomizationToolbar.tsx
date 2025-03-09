@@ -20,8 +20,10 @@ export const CustomizationToolbar: React.FC<CustomizationToolbarProps> = ({
 }) => {
   const [isPresetDropdownOpen, setIsPresetDropdownOpen] = useState(false);
   
+  // Create a handler that updates options and adds to history
   const handleChange = (updatedValues: Partial<CustomizationOptions>) => {
-    onChange({ ...options, ...updatedValues });
+    const newOptions = { ...options, ...updatedValues };
+    onChange(newOptions);
   };
 
   // Style presets
@@ -122,7 +124,9 @@ export const CustomizationToolbar: React.FC<CustomizationToolbarProps> = ({
 
   // Apply a preset's settings without closing the dropdown
   const applyPreset = (preset: StylePreset) => {
-    onChange({ ...options, ...preset.settings });
+    // Merge current options with preset settings to ensure all properties are present
+    const newOptions = { ...options, ...preset.settings };
+    onChange(newOptions);
   };
 
   // Toggle the preset dropdown section
